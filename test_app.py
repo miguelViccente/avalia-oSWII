@@ -1,4 +1,5 @@
-"""Complete os testes. Os testes pendentes devem falhar até serem escritos."""
+
+"""Testes automatizados da API de gerenciamento de tarefas."""
 import pytest
 from app import create_app
 
@@ -21,7 +22,6 @@ def auth_headers(client):
 
 
 def test_consulta_tarefas(client):
-    # Teste de exemplo já implementado.
     resposta = client.get("/tarefas")
     assert resposta.status_code == 200
     assert isinstance(resposta.get_json(), list)
@@ -29,29 +29,77 @@ def test_consulta_tarefas(client):
 
 
 def test_login_correto(client):
-    # POST /login: verificar status 200 e token como texto não vazio.
-    pytest.fail("TODO: implementar teste de login correto")
+    resposta = client.post(
+        "/login",
+        json={"usuario": "aluno", "senha": "123456"}
+    )
+
+    dados = resposta.get_json()
+
+    assert resposta.status_code == 200
+    assert isinstance(dados["access_token"], str)
+    assert dados["access_token"]
 
 
 def test_login_senha_incorreta(client):
-    # Verificar status 401 e ausência de access_token.
-    pytest.fail("TODO: implementar teste de senha incorreta")
+    resposta = client.post(
+        "/login",
+        json={"usuario": "aluno", "senha": "errada"}
+    )
+
+    assert resposta.status_code == 401
+    assert "access_token" not in resposta.get_json()
 
 
 def test_cadastro_sem_token(client):
-    # Enviar um título válido sem Authorization.
-    # Verificar status 401 e que a lista permaneceu igual.
-    pytest.fail("TODO: implementar teste de cadastro sem token")
+    # Consulta a lista antes da tentativa de cadastro
+    lista_anterior = client.get("/tarefas").get_json()
+
+    resposta = client.post(
+        "/tarefas",
+        json={"titulo": "Nova tarefa"}
+    )
+
+    assert resposta.status_code == 401
+
+    # Verifica se a lista permaneceu igual
+    assert client.get("/tarefas").get_json() == lista_anterior
 
 
 def test_cadastro_com_token(client, auth_headers):
-    # Usar client.post(..., json={...}, headers=auth_headers).
-    # Verificar 201, título, situação e ID diferente dos existentes.
-    # Consultar GET /tarefas e confirmar que a nova tarefa foi persistida.
-    pytest.fail("TODO: implementar teste de cadastro autenticado")
+    lista_anterior = client.get("/tarefas").get_json()
+
+    resposta = client.post(
+        "/tarefas",
+        json={"titulo": "Nova tarefa"},
+        headers=auth_headers
+    )
+
+    tarefa = resposta.get_json()
+
+    assert resposta.status_code == 201
+    assert tarefa["titulo"] == "Nova tarefa"
+    assert tarefa["situacao"] == "pendente"
+
+    # Verifica se o ID é diferente dos anteriores
+    ids = [item["id"] for item in lista_anterior]
+    assert tarefa["id"] not in ids
+
+    # Confirma que a tarefa foi cadastrada
+    lista_atual = client.get("/tarefas").get_json()
+    assert tarefa in lista_atual
+    assert len(lista_atual) == len(lista_anterior) + 1
 
 
 @pytest.mark.parametrize("dados", [{}, {"titulo": ""}, {"titulo": "   "}])
 def test_cadastro_titulo_vazio(client, auth_headers, dados):
-    # Enviar cada caso com token válido; verificar 400 e lista inalterada.
-    pytest.fail("TODO: implementar teste de título ausente ou vazio")
+    lista_anterior = client.get("/tarefas").get_json()
+
+    resposta = client.post(
+        "/tarefas",
+        json=dados,
+        headers=auth_headers
+    )
+
+    assert resposta.status_code == 400
+    assert client.get("/tarefas").get_json() == lista_anterior

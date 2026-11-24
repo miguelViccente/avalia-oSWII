@@ -1,4 +1,5 @@
-"""API-base da avaliação de SW II. Complete os TODOs."""
+
+"""API de gerenciamento de tarefas - Avaliação de SW II."""
 import os
 from datetime import timedelta
 
@@ -10,18 +11,19 @@ from werkzeug.security import check_password_hash, generate_password_hash
 def create_app(test_config=None):
     app = Flask(__name__)
     app.config.update(
-        # Chave local de demonstração. Em produção, configure JWT_SECRET_KEY.
         JWT_SECRET_KEY=os.environ.get(
             "JWT_SECRET_KEY", "chave-didatica-local-sw-ii-nao-usar-em-producao"
         ),
         JWT_ACCESS_TOKEN_EXPIRES=timedelta(minutes=30),
     )
+
     if test_config:
         app.config.update(test_config)
 
     jwt = JWTManager(app)
-    # Cada aplicação possui sua própria lista: os testes não compartilham dados.
+
     tarefas = [{"id": 1, "titulo": "Estudar Flask", "situacao": "pendente"}]
+
     usuarios = {
         "aluno": generate_password_hash("123456")
     }
@@ -41,39 +43,61 @@ def create_app(test_config=None):
     @app.post("/login")
     def login():
         dados = request.get_json(silent=True)
+
         if not isinstance(dados, dict):
             return jsonify({"erro": "Envie um objeto JSON."}), 400
 
         usuario = dados.get("usuario")
         senha = dados.get("senha")
+
         if not isinstance(usuario, str) or not isinstance(senha, str):
             return jsonify({"erro": "Informe usuário e senha como texto."}), 400
 
-        # TODO 1: buscar o hash em usuarios.get(usuario).
-        # TODO 2: verificar a senha com check_password_hash(hash, senha).
-        # Credenciais incorretas: retornar erro em JSON e status 401.
-        # Credenciais corretas: criar token com create_access_token(identity=usuario).
-        # Retornar {"access_token": token} e status 200.
-        return jsonify({"erro": "Login ainda não implementado."}), 501
+        # Busca a senha armazenada como hash
+        senha_hash = usuarios.get(usuario)
+
+        # Verifica as credenciais
+        if senha_hash is None or not check_password_hash(senha_hash, senha):
+            return jsonify({"erro": "Usuário ou senha incorretos."}), 401
+
+        # Gera o token de acesso
+        token = create_access_token(identity=usuario)
+
+        return jsonify({"access_token": token}), 200
 
     @app.get("/tarefas")
     def listar_tarefas():
-        # Exemplo pronto para consultar durante a implementação.
         return jsonify(tarefas), 200
 
     @app.post("/tarefas")
-    # TODO 3: adicionar aqui o decorador @jwt_required().
+    @jwt_required()
     def cadastrar_tarefa():
         dados = request.get_json(silent=True)
+
         if not isinstance(dados, dict):
             return jsonify({"erro": "Envie um objeto JSON."}), 400
 
-        # TODO 4: obter titulo, verificar se é texto e aplicar strip().
-        # Se ausente, vazio ou composto só de espaços: retornar erro e status 400.
-        # TODO 5: gerar um ID único (maior ID atual + 1).
-        # Criar {"id": ..., "titulo": ..., "situacao": "pendente"}.
-        # Adicionar à lista tarefas e retornar a tarefa com status 201.
-        return jsonify({"erro": "Cadastro ainda não implementado."}), 501
+        # Obtém e valida o título
+        titulo = dados.get("titulo")
+
+        if not isinstance(titulo, str) or not titulo.strip():
+            return jsonify({"erro": "O título é obrigatório."}), 400
+
+        titulo = titulo.strip()
+
+        # Gera um identificador único
+        novo_id = max((tarefa["id"] for tarefa in tarefas), default=0) + 1
+
+        # Cria a nova tarefa
+        nova_tarefa = {
+            "id": novo_id,
+            "titulo": titulo,
+            "situacao": "pendente"
+        }
+
+        tarefas.append(nova_tarefa)
+
+        return jsonify(nova_tarefa), 201
 
     return app
 

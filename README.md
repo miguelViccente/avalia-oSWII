@@ -13,68 +13,77 @@ py -m venv .venv
 .\.venv\Scripts\python.exe app.py
 ```
 
-A API ficará em http://127.0.0.1:5000. Mantenha esse terminal aberto para usar
-Bruno/Postman. Para parar, pressione Ctrl+C. Não é necessário ativar o ambiente.
+A API ficará em http://127.0.0.1:5000. Mantenha esse terminal aberto par# API de Gerenciamento de Tarefas — SW II
 
-Em Linux/macOS, use `python3 -m venv .venv` e substitua o executável dos
-comandos seguintes por `.venv/bin/python`.
+## Integrantes
 
-## Executar os testes
-Em outro terminal, na mesma pasta:
+- Miguel Angelo Monteiro Vicente
+- Ana Vitória de Oliveira
+
+## Sobre o projeto
+
+Este projeto consiste em uma API REST desenvolvida em Python com Flask, que permite consultar e cadastrar tarefas. A API utiliza autenticação JWT para proteger o cadastro de novas tarefas e realiza a validação dos dados recebidos.
+
+## Tecnologias utilizadas
+
+- Python
+- Flask
+- Flask-JWT-Extended
+- Werkzeug
+- Pytest
+- Bruno
+
+## Como executar o projeto
+
+Crie o ambiente virtual:
+
+```powershell
+python -m venv .venv
+```
+
+Instale as dependências:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+```
+
+Execute a aplicação:
+
+```powershell
+.\.venv\Scripts\python.exe app.py
+```
+
+A API estará disponível em `http://127.0.0.1:5000`.
+
+## Credenciais de demonstração
+
+- Usuário: aluno
+- Senha: 123456
+
+## Rotas da API
+
+| Método | Rota | Descrição | Autenticação |
+|---|---|---|---|
+| POST | /login | Realiza o login e gera um token JWT | Não |
+| GET | /tarefas | Lista as tarefas cadastradas | Não |
+| POST | /tarefas | Cadastra uma nova tarefa | Sim |
+
+Para cadastrar uma tarefa, é necessário enviar um token JWT válido no cabeçalho Authorization e informar um título no corpo da requisição.
+
+## Testes automatizados
+
+Para executar os testes, utilize:
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -v
 ```
 
-Os testes criam sua própria aplicação: não precisam do servidor aberto.
-Inicialmente, há um teste pronto e sete casos pendentes que falham
-intencionalmente (o teste de título executa três exemplos).
-Não apague os testes pendentes: substitua cada `pytest.fail(...)` pela sua
-implementação e pelas verificações solicitadas nos comentários.
+Os testes verificam o funcionamento do login, a consulta de tarefas, a autenticação no cadastro e a validação de títulos.
 
-## Credenciais de demonstração
-- Usuário: `aluno`
-- Senha: `123456`
+Todos os oito testes foram executados com sucesso.
 
-A senha já é armazenada como hash. Não compare a senha digitada diretamente
-com o hash: utilize `check_password_hash`.
+Todos os prints que foram tirados do projeto estão na pasta "prints"
 
-## Roteiro
-1. Aula 1: executar a base e completar a validação do login e geração do JWT.
-2. Aula 2: proteger POST /tarefas e implementar validação e cadastro.
-3. Aula 3: completar os testes, executar o Pytest e corrigir os erros.
-4. Aula 4: finalizar este README e demonstrar a API à professora.
+## Conclusão
 
-## Contrato da API
-| Método | Rota | Resultado esperado |
-| --- | --- | --- |
-| POST | /login | 200 e access_token, ou 401 para credenciais incorretas |
-| GET | /tarefas | 200 e lista de tarefas |
-| POST | /tarefas | 201 e tarefa criada; exige JWT |
-
-POST /login — corpo JSON:
-```json
-{"usuario": "aluno", "senha": "123456"}
-```
-
-POST /tarefas — corpo JSON:
-```json
-{"titulo": "Revisar os testes da API"}
-```
-
-No Bruno/Postman, selecione corpo JSON e utilize Content-Type: application/json.
-Para cadastrar, adicione o cabeçalho `Authorization: Bearer SEU_TOKEN`.
-Título ausente, vazio ou só com espaços: 400. Sem token: 401.
-O identificador deve ser único e a situação inicial deve ser `pendente`.
-
-## O que já está pronto
-Configuração do Flask/JWT, hash do usuário, dados iniciais, consulta de tarefas,
-tratamento de erros do JWT, fixtures e um teste de consulta.
-As rotas incompletas retornam 501 até serem implementadas.
-
-## Limites deste projeto didático
-Dados em memória são perdidos ao reiniciar. As tarefas são compartilhadas entre
-os usuários autenticados; não há separação por proprietário.
-Credenciais e chave local são apenas para demonstração. Não publicar esta base
-como serviço de produção. O modo debug é destinado à execução local.
-
+O desenvolvimento deste projeto permitiu aplicar os conhecimentos adquiridos em aula sobre APIs REST, autenticação JWT, validação de dados e testes automatizados. Os resultados obtidos demonstram que a aplicação atende aos requisitos propostos na atividade.
